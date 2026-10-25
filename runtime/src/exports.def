@@ -1,0 +1,3 @@
+LIBRARY OFCRT
+EXPORTS
+    DirectInput8Create

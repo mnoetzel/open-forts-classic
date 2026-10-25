@@ -1,0 +1,63 @@
+name: Checks
+
+# Builds the runtime and enforces formatting and lints for all code:
+# clang-format (C++), ESLint + Prettier + tsc (TypeScript), rustfmt + clippy (Rust).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-lint:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check C++ formatting
+        shell: bash
+        run: clang-format --dry-run --Werror runtime/src/*.cpp runtime/src/*.h
+
+      # The launcher embeds the runtime DLL, so it has to be built first.
+      - name: Build the runtime
+        run: |
+          cmake -S runtime -B runtime/build -A Win32
+          cmake --build runtime/build --config Release
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: launcher/package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: launcher/pnpm-lock.yaml
+
+      - name: Check the launcher interface
+        working-directory: launcher
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm lint
+          pnpm format:check
+          pnpm typecheck
+
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --component clippy,rustfmt
+
+      # Caches compiled dependencies between runs; the cache key includes the toolchain and Cargo.lock.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: launcher/src-tauri
+
+      - name: Check the launcher backend
+        working-directory: launcher/src-tauri
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets --locked -- -D warnings
+          cargo test --locked
