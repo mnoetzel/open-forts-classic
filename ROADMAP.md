@@ -33,6 +33,7 @@ How it works technically is described in [docs/decisions/0001-runtime-dll.md](do
 - Widen the letterbox bars of in-engine cutscenes so they cover the full width.
 - Play the FMV videos at 4:3, centred, instead of stretched.
 - Any resolution, fullscreen, windowed and borderless windowed, and Alt+Enter to switch.
+- Declare the game DPI-aware at start-up. Without this, Windows enlarges the game when display scaling is above 100 % and part of the picture is cut off. The GOG installation avoids this only through a compatibility flag in the registry, which a copied or moved installation doesn't have.
 
 ### Launcher and updates
 
