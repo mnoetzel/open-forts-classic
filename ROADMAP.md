@@ -1,6 +1,6 @@
 # OpenForts Classic: Roadmap
 
-OpenForts Classic improves the original *Worms Forts: Under Siege* (Team17, 2004) on Windows. It patches the player's own installation at run time and ships no Team17 files. It is built before the full rewrite ([OpenForts](https://github.com/mnoetzel/open-forts)), partly to find out what the rewrite should feel like.
+OpenForts Classic improves the original *Worms Forts: Under Siege* (Team17, 2004) on Windows. It patches the player's own installation at run time and ships no Team17 files. It is built before the full rewrite ([OpenForts](https://github.com/mnoetzel/openforts)), partly to find out what the rewrite should feel like.
 
 How it works technically is described in [docs/decisions/0001-runtime-dll.md](docs/decisions/0001-runtime-dll.md).
 
@@ -37,11 +37,12 @@ How it works technically is described in [docs/decisions/0001-runtime-dll.md](do
 
 ### Launcher and updates
 
-- Find the GOG installation (registry or folder picker) and validate it.
+- Portable, no installer: players put the launcher into their Worms Forts folder and start it from there.
+- Validate the installation (the hash of `WF.exe`).
 - Create and maintain the patched copy of the game executable.
 - Detect other mods that patch the same code (for example the Anniversary Patch and its ASI loader) and warn the player.
 - Settings: resolution, display mode, frame limit, vsync, language, intro movies, music, control profile.
-- Automatic updates from GitHub Releases.
+- Automatic updates from GitHub Releases, verified with our signature. Tauri's built-in updater needs an installer, so the portable launcher needs its own update mechanism.
 
 ### Bug fixes
 

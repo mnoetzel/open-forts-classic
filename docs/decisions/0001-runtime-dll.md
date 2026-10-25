@@ -19,7 +19,8 @@ We use a run-time DLL, loaded through the import table of a patched copy of `WF.
 - Data changes are applied when the game loads its data. The exact technique is decided per change:
   - small value changes are written into the loaded XOM containers;
   - larger changes can go through a file overlay: the DLL redirects file reads to a folder of modified copies that the launcher generates locally from the player's own files.
-- The launcher (C#, .NET, Velopack) handles installation detection, the hash check, settings and updates.
+- The launcher (Rust with Tauri) handles the hash check, settings and updates. It is a single portable file that players put into their game folder; there is no installer. The runtime DLL is embedded in it and written into the game folder on launch. The launcher can later be reused for OpenForts on Windows, macOS and Linux.
+- The patched copy, `WF-OpenForts.exe`, differs from `WF.exe` only in its import table: it names our runtime (`OFCRT.DLL`) instead of GOG's `PATCH.DLL`, which stands in for `DINPUT8.DLL`. Our runtime forwards `DirectInput8Create` to GOG's `patch.dll` for now, so GOG's fixes keep working until we replace them step by step. The long-term goal is to need nothing from GOG's additions.
 
 ## Why not edit the files directly
 
