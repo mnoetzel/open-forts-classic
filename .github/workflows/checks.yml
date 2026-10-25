@@ -47,10 +47,17 @@ jobs:
           pnpm format:check
           pnpm typecheck
 
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --component clippy,rustfmt
+
+      # Caches compiled dependencies between runs; the cache key includes the toolchain and Cargo.lock.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: launcher/src-tauri
+
       - name: Check the launcher backend
         working-directory: launcher/src-tauri
         run: |
-          rustup toolchain install stable --profile minimal --component clippy,rustfmt
           cargo fmt --check
           cargo clippy --all-targets --locked -- -D warnings
           cargo test --locked
