@@ -14,7 +14,6 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 add_library(ofcrt SHARED
   src/dll-main.cpp
   src/log.cpp
-  src/exports.def
 )
 set_target_properties(ofcrt PROPERTIES OUTPUT_NAME "OFCRT")
 target_compile_definitions(ofcrt PRIVATE
