@@ -1,0 +1,42 @@
+# Team17 game files must never be committed (copyright).
+# The CI check in .github/workflows/forbidden-files.yml enforces this.
+WF.exe
+WFLauncher.exe
+options.exe
+patch.dll
+goggame.dll
+*.xom
+*.lub
+*.lip
+*.aud
+*.mpg
+*.ogg
+*.tga
+*Bitmaps.csv
+SaveGame.*
+*DefSave*.xom
+
+# Decompiled or extracted game content
+decomp/
+dumps/
+lua_src/
+
+# Build output
+build/
+bin/
+obj/
+out/
+*.asi
+*.pdb
+*.ilk
+*.obj
+
+# IDE and OS files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+Thumbs.db
+Desktop.ini
+.DS_Store

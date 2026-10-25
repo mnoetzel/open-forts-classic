@@ -1,0 +1,40 @@
+name: Forbidden files
+
+# Fails if a commit adds Team17 game files (executables, data, audio, video,
+# textures). OpenForts Classic ships only its own code; players use their own
+# copy of the game.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check for game files
+        run: |
+          pattern='(^|/)(wf\.exe|wflauncher\.exe|options\.exe|patch\.dll|goggame\.dll|savegame\.[^/]*)$|\.(xom|lub|lip|aud|mpg|ogg|tga)$|bitmaps\.csv$'
+          found=$(git ls-files | grep -iE "$pattern" || true)
+          if [ -n "$found" ]; then
+            echo "::error::Team17 game files must not be committed:"
+            echo "$found"
+            exit 1
+          fi
+
+      - name: Check for large files
+        run: |
+          large=$(git ls-files -z | xargs -0 -r du -k | awk '$1 > 1024 {print $2 " (" $1 " KB)"}')
+          if [ -n "$large" ]; then
+            echo "::error::Files larger than 1 MB need a review (they may be game assets):"
+            echo "$large"
+            exit 1
+          fi
