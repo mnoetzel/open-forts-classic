@@ -32,6 +32,9 @@ BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID /*reserved*/) {
         ofc::log::open();
         ofc::log::write("OpenForts Classic runtime " OFC_VERSION " loaded");
         ofc::log::write("Game executable: " + executable_path());
+        if (ofc::log::debug_enabled()) {
+            ofc::log::write("Debug mode: on");
+        }
         ofc::log::write(GetModuleHandleW(L"patch.dll") != nullptr ? "GOG's patch.dll is loaded"
                                                                   : "ERROR: GOG's patch.dll is not loaded");
         // Without this, Windows scales the game when display scaling is above 100 %, which cuts

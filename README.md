@@ -12,6 +12,8 @@ Improvements for the original *Worms Forts: Under Siege* on Windows: correct gam
 
 Put `openforts-classic-launcher.exe` into your Worms Forts folder (the folder that contains `WF.exe`) and start it from there. It creates `WF-OpenForts.exe` and `OFCRT.dll` next to the game and leaves your original files untouched.
 
+The launcher saves its settings in `OpenForts.ini` in the game folder. The game writes `OpenForts.log` there as well; with **Debug mode** switched on in the launcher, the log contains more details for diagnosing problems.
+
 ## Building
 
 Requirements: Visual Studio Build Tools 2022 with the C++ workload, CMake, Rust (stable) and Node.js with pnpm.

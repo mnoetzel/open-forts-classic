@@ -69,3 +69,16 @@ button:disabled {
 #status.error {
   color: var(--error);
 }
+
+.settings {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.settings label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
