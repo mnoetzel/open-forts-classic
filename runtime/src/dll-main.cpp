@@ -11,6 +11,7 @@
 
 #include <string>
 
+#include "frame-timing.h"
 #include "log.h"
 
 #pragma comment(linker, "/EXPORT:DirectInput8Create=patch.DirectInput8Create")
@@ -33,6 +34,11 @@ BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID /*reserved*/) {
         ofc::log::write("Game executable: " + executable_path());
         ofc::log::write(GetModuleHandleW(L"patch.dll") != nullptr ? "GOG's patch.dll is loaded"
                                                                   : "ERROR: GOG's patch.dll is not loaded");
+        // Without this, Windows scales the game when display scaling is above 100 %, which cuts
+        // off part of the picture. Must happen before the game creates its window.
+        ofc::log::write(SetProcessDPIAware() ? "DPI awareness: enabled"
+                                             : "DPI awareness: not changed (already set or not supported)");
+        ofc::frame_timing::install();
     } else if (reason == DLL_PROCESS_DETACH) {
         ofc::log::write("Game is shutting down");
     }
