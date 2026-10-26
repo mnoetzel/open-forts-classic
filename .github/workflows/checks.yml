@@ -14,13 +14,17 @@ permissions:
 jobs:
   build-and-lint:
     runs-on: windows-latest
+    # bash runs every step with "stop on the first error" (bash -e -o pipefail). The Windows default,
+    # PowerShell, only reports the exit code of a step's last command.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Check C++ formatting
-        shell: bash
         run: clang-format --dry-run --Werror runtime/src/*.cpp runtime/src/*.h
 
       # The launcher embeds the runtime DLL, so it has to be built first.

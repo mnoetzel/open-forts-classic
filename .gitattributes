@@ -1,0 +1,2 @@
+# Use LF line endings in every checkout, including the Windows CI runner.
+* text=auto eol=lf
