@@ -12,7 +12,9 @@
 #include <string>
 
 #include "frame-timing.h"
+#include "game-loop.h"
 #include "log.h"
+#include "widescreen.h"
 
 #pragma comment(linker, "/EXPORT:DirectInput8Create=patch.DirectInput8Create")
 
@@ -42,6 +44,8 @@ BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID /*reserved*/) {
         ofc::log::write(SetProcessDPIAware() ? "DPI awareness: enabled"
                                              : "DPI awareness: not changed (already set or not supported)");
         ofc::frame_timing::install();
+        ofc::widescreen::install();
+        ofc::game_loop::install();
     } else if (reason == DLL_PROCESS_DETACH) {
         ofc::log::write("Game is shutting down");
     }

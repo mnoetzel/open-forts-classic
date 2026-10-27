@@ -2,49 +2,64 @@
 
 #include <windows.h>
 
+#include <algorithm>
+#include <array>
 #include <cstring>
+#include <vector>
 
 namespace ofc::patch {
 namespace {
 
 constexpr std::uint8_t call_opcode = 0xE8;
+constexpr std::uint8_t nop_opcode = 0x90;
 constexpr std::size_t call_size = 5;
 
-// Writes `size` bytes to code or read-only data, restoring the page protection afterwards.
-void write(std::uintptr_t at, const void* data, std::size_t size) {
-    auto* address = reinterpret_cast<void*>(at);
-    DWORD old_protection = 0;
-    VirtualProtect(address, size, PAGE_EXECUTE_READWRITE, &old_protection);
-    std::memcpy(address, data, size);
-    VirtualProtect(address, size, old_protection, &old_protection);
-    FlushInstructionCache(GetCurrentProcess(), address, size);
+std::array<std::uint8_t, call_size> relative_call(std::uintptr_t at, std::uintptr_t target) {
+    const auto offset = static_cast<std::int32_t>(target - (at + call_size));
+    std::array<std::uint8_t, call_size> call = {call_opcode};
+    std::memcpy(call.data() + 1, &offset, sizeof offset);
+    return call;
 }
 
-std::int32_t relative_offset(std::uintptr_t call_at, std::uintptr_t target) {
-    return static_cast<std::int32_t>(target - (call_at + call_size));
+std::array<std::uint8_t, 4> bytes_of(std::uint32_t value) {
+    std::array<std::uint8_t, 4> bytes;
+    std::memcpy(bytes.data(), &value, sizeof value);
+    return bytes;
 }
 
 }  // namespace
 
-bool redirect_call(std::uintptr_t at, std::uintptr_t expected_target, const void* new_target) {
-    std::uint8_t expected[call_size] = {call_opcode};
-    const std::int32_t expected_offset = relative_offset(at, expected_target);
-    std::memcpy(expected + 1, &expected_offset, sizeof expected_offset);
-    if (std::memcmp(reinterpret_cast<const void*>(at), expected, call_size) != 0) {
+bool replace_bytes(std::uintptr_t at, std::span<const std::uint8_t> expected,
+                   std::span<const std::uint8_t> replacement) {
+    auto* address = reinterpret_cast<void*>(at);
+    if (expected.size() != replacement.size() || std::memcmp(address, expected.data(), expected.size()) != 0) {
         return false;
     }
-    const std::int32_t new_offset = relative_offset(at, reinterpret_cast<std::uintptr_t>(new_target));
-    write(at + 1, &new_offset, sizeof new_offset);
+    DWORD old_protection = 0;
+    VirtualProtect(address, replacement.size(), PAGE_EXECUTE_READWRITE, &old_protection);
+    std::memcpy(address, replacement.data(), replacement.size());
+    VirtualProtect(address, replacement.size(), old_protection, &old_protection);
+    FlushInstructionCache(GetCurrentProcess(), address, replacement.size());
     return true;
 }
 
-bool replace_pointer(std::uintptr_t at, std::uintptr_t expected, const void* replacement) {
-    if (*reinterpret_cast<const std::uintptr_t*>(at) != expected) {
+bool redirect_call(std::uintptr_t at, std::uintptr_t expected_target, const void* new_target) {
+    return replace_bytes(at, relative_call(at, expected_target),
+                         relative_call(at, reinterpret_cast<std::uintptr_t>(new_target)));
+}
+
+bool replace_with_call(std::uintptr_t at, std::span<const std::uint8_t> expected, const void* target) {
+    if (expected.size() < call_size) {
         return false;
     }
-    const auto value = reinterpret_cast<std::uintptr_t>(replacement);
-    write(at, &value, sizeof value);
-    return true;
+    std::vector<std::uint8_t> replacement(expected.size(), nop_opcode);
+    const auto call = relative_call(at, reinterpret_cast<std::uintptr_t>(target));
+    std::ranges::copy(call, replacement.begin());
+    return replace_bytes(at, expected, replacement);
+}
+
+bool replace_dword(std::uintptr_t at, std::uint32_t expected, std::uint32_t value) {
+    return replace_bytes(at, bytes_of(expected), bytes_of(value));
 }
 
 }  // namespace ofc::patch

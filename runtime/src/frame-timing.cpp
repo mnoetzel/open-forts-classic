@@ -12,10 +12,8 @@
 namespace ofc::frame_timing {
 namespace {
 
-// XomTaskAppBase::Frame(unsigned dt_ms) in WF.exe (GOG build) and the vtable slots that point to it.
-constexpr std::uintptr_t frame_function = 0x5e1885;
-constexpr std::uintptr_t frame_vtable_slots[] = {0x6b5714, 0x6c22b4, 0x6c235c};
-// Inside Frame: `call _ftol2`, which truncates the scaled frame time (dt_ms * game speed).
+// Inside XomTaskAppBase::Frame (0x5e1885): `call _ftol2`, which truncates the scaled frame time
+// (dt_ms * game speed).
 constexpr std::uintptr_t scaled_time_call = 0x5e18af;
 constexpr std::uintptr_t msvc_ftol2 = 0x5e0d40;
 
@@ -114,28 +112,17 @@ private:
     DWORD refresh_rate_ = 0;
 };
 
-using FrameFunction = void(__thiscall*)(void* app, unsigned dt_ms);
-
-// Replaces Frame in the vtables. __fastcall with an unused second parameter matches __thiscall.
-void __fastcall frame_with_limiter(void* app, void* /*unused_edx*/, unsigned dt_ms) {
-    reinterpret_cast<FrameFunction>(frame_function)(app, dt_ms);
-    static FrameLimiter limiter;
-    limiter.wait_for_next_frame();
-}
-
 }  // namespace
 
 void install() {
     log::write(patch::redirect_call(scaled_time_call, msvc_ftol2, &ftol2_with_carry)
                    ? "Game clock: fractions of a millisecond are carried over between frames"
                    : "ERROR: unexpected code in Frame; the game clock fix was not applied");
+}
 
-    int replaced = 0;
-    for (const std::uintptr_t slot : frame_vtable_slots) {
-        replaced += patch::replace_pointer(slot, frame_function, reinterpret_cast<const void*>(&frame_with_limiter));
-    }
-    log::write("Frame limiter: installed in " + std::to_string(replaced) + " of " +
-               std::to_string(std::size(frame_vtable_slots)) + " vtables");
+void wait_for_next_frame() {
+    static FrameLimiter limiter;
+    limiter.wait_for_next_frame();
 }
 
 }  // namespace ofc::frame_timing
