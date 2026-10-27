@@ -11,13 +11,19 @@ namespace {
 HANDLE file = INVALID_HANDLE_VALUE;
 ULONGLONG start_ms = 0;
 CRITICAL_SECTION lock;
+bool debug_mode = false;
 
-std::wstring log_path() {
+std::wstring game_folder() {
     wchar_t exe[MAX_PATH];
     const DWORD length = GetModuleFileNameW(nullptr, exe, MAX_PATH);
     std::wstring path(exe, length);
     path.resize(path.find_last_of(L'\\') + 1);
-    return path + L"OpenForts.log";
+    return path;
+}
+
+// OpenForts.ini in the game folder, written by the launcher.
+bool debug_requested() {
+    return GetPrivateProfileIntW(L"Debug", L"Enabled", 0, (game_folder() + L"OpenForts.ini").c_str()) != 0;
 }
 
 }  // namespace
@@ -25,8 +31,17 @@ std::wstring log_path() {
 void open() {
     InitializeCriticalSection(&lock);
     start_ms = GetTickCount64();
-    file = CreateFileW(log_path().c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS,
-                       FILE_ATTRIBUTE_NORMAL, nullptr);
+    file = CreateFileW((game_folder() + L"OpenForts.log").c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr,
+                       CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    debug_mode = debug_requested();
+}
+
+bool debug_enabled() { return debug_mode; }
+
+void debug(std::string_view line) {
+    if (debug_mode) {
+        write(std::string("DEBUG ").append(line));
+    }
 }
 
 void write(std::string_view line) {

@@ -6,6 +6,10 @@ interface GameStatus {
   sha256: string | null;
 }
 
+interface Settings {
+  debug: boolean;
+}
+
 function element<T extends HTMLElement>(
   selector: string,
   type: new () => T,
@@ -19,6 +23,7 @@ function element<T extends HTMLElement>(
 
 const launchButton = element("#launch-button", HTMLButtonElement);
 const statusText = element("#status", HTMLParagraphElement);
+const debugCheckbox = element("#debug-mode", HTMLInputElement);
 
 function showStatus(message: string, isError = false): void {
   statusText.textContent = message;
@@ -62,5 +67,27 @@ async function launch(): Promise<void> {
   }
 }
 
+async function loadSettings(): Promise<void> {
+  try {
+    const settings = await invoke<Settings>("load_settings");
+    debugCheckbox.checked = settings.debug;
+    debugCheckbox.disabled = false;
+  } catch (error) {
+    showStatus(errorMessage(error), true);
+  }
+}
+
+async function saveSettings(): Promise<void> {
+  const settings: Settings = { debug: debugCheckbox.checked };
+  try {
+    await invoke("save_settings", { settings });
+  } catch (error) {
+    debugCheckbox.checked = !settings.debug;
+    showStatus(errorMessage(error), true);
+  }
+}
+
 launchButton.addEventListener("click", () => void launch());
+debugCheckbox.addEventListener("change", () => void saveSettings());
 void checkGame();
+void loadSettings();
