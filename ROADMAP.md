@@ -2,8 +2,6 @@
 
 OpenForts Classic improves the original *Worms Forts: Under Siege* (Team17, 2004) on Windows. It patches the player's own installation at run time and ships no Team17 files. It is built before the full rewrite ([OpenForts](https://github.com/mnoetzel/openforts)), partly to find out what the rewrite should feel like.
 
-How it works technically is described in [docs/decisions/0001-runtime-dll.md](docs/decisions/0001-runtime-dll.md).
-
 ## Supported versions
 
 - **GOG release only** for now. The launcher checks the hash of `WF.exe` and refuses unknown builds.

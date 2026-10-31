@@ -21,6 +21,10 @@ decomp/
 dumps/
 lua_src/
 
+# Internal documents, kept locally and not published
+docs/
+PROGRESS.md
+
 # Build output
 build/
 bin/
