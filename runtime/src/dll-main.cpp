@@ -11,8 +11,10 @@
 
 #include <string>
 
+#include "controls.h"
 #include "frame-timing.h"
 #include "game-loop.h"
+#include "input-trace.h"
 #include "log.h"
 #include "widescreen.h"
 
@@ -44,8 +46,12 @@ BOOL APIENTRY DllMain(HMODULE module, DWORD reason, LPVOID /*reserved*/) {
         ofc::log::write(SetProcessDPIAware() ? "DPI awareness: enabled"
                                              : "DPI awareness: not changed (already set or not supported)");
         ofc::frame_timing::install();
+        ofc::controls::install();
         ofc::widescreen::install();
         ofc::game_loop::install();
+        if (ofc::log::debug_enabled()) {
+            ofc::input_trace::install();
+        }
     } else if (reason == DLL_PROCESS_DETACH) {
         ofc::log::write("Game is shutting down");
     }

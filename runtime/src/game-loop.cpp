@@ -4,7 +4,9 @@
 #include <iterator>
 #include <string>
 
+#include "controls.h"
 #include "frame-timing.h"
+#include "input-trace.h"
 #include "log.h"
 #include "memory-patch.h"
 #include "widescreen.h"
@@ -18,8 +20,13 @@ constexpr std::uintptr_t frame_vtable_slots[] = {0x6b5714, 0x6c22b4, 0x6c235c};
 
 using FrameFunction = void(__thiscall*)(void* app, unsigned dt_ms);
 
+std::uint32_t frames = 0;
+
 // Replaces Frame in the vtables. __fastcall with an unused second parameter matches __thiscall.
 void __fastcall frame(void* app, void* /*unused_edx*/, unsigned dt_ms) {
+    ++frames;
+    input_trace::update();
+    controls::update();
     widescreen::update();
     reinterpret_cast<FrameFunction>(frame_function)(app, dt_ms);
     frame_timing::wait_for_next_frame();
@@ -35,5 +42,7 @@ void install() {
     log::write("Game loop: frame hook installed in " + std::to_string(replaced) + " of " +
                std::to_string(std::size(frame_vtable_slots)) + " vtables");
 }
+
+std::uint32_t frame_number() { return frames; }
 
 }  // namespace ofc::game_loop

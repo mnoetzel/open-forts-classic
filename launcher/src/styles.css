@@ -82,3 +82,17 @@ button:disabled {
   gap: 8px;
   align-items: center;
 }
+
+.settings select {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.settings .hint {
+  margin: 4px 0 12px;
+  font-size: 0.85rem;
+}

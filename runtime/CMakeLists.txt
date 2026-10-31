@@ -12,11 +12,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_library(ofcrt SHARED
+  src/camera-follow.cpp
+  src/controls.cpp
   src/dll-main.cpp
   src/frame-timing.cpp
   src/game-loop.cpp
+  src/input-timing.cpp
+  src/input-trace.cpp
   src/log.cpp
   src/memory-patch.cpp
+  src/mouse-look.cpp
+  src/settings.cpp
   src/widescreen.cpp
 )
 target_link_libraries(ofcrt PRIVATE user32)
