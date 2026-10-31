@@ -51,6 +51,8 @@ Only stability fixes and clearly broken behaviour. Nothing in 0.1 changes game b
 - Crash handler that writes a log and a minidump.
 - The "Max Wind" Fortpot bug.
 - The medal threshold boundary bug.
+- Choosing where to place a building: when changing the selected spot, which spot gets selected is unpredictable, so selecting the intended spot is a matter of luck (original UX issue).
+- Alt+F4 closes the game. Today it does nothing, so quitting takes several menus.
 
 ### Controls
 

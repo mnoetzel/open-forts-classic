@@ -15,6 +15,16 @@
       <button id="launch-button" type="button" disabled>Launch</button>
 
       <section class="settings">
+        <label for="controls-profile">
+          Controls
+          <select id="controls-profile" disabled>
+            <option value="modern">Modern</option>
+            <option value="classic">Classic (original)</option>
+          </select>
+        </label>
+        <p class="hint">
+          For LAN games, all players need the same controls profile.
+        </p>
         <label>
           <input id="debug-mode" type="checkbox" disabled />
           Debug mode (writes more details to OpenForts.log)

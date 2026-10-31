@@ -6,8 +6,15 @@ interface GameStatus {
   sha256: string | null;
 }
 
+type ControlsProfile = "modern" | "classic";
+
 interface Settings {
   debug: boolean;
+  controls: ControlsProfile;
+}
+
+function isControlsProfile(value: string): value is ControlsProfile {
+  return value === "modern" || value === "classic";
 }
 
 function element<T extends HTMLElement>(
@@ -24,6 +31,7 @@ function element<T extends HTMLElement>(
 const launchButton = element("#launch-button", HTMLButtonElement);
 const statusText = element("#status", HTMLParagraphElement);
 const debugCheckbox = element("#debug-mode", HTMLInputElement);
+const controlsSelect = element("#controls-profile", HTMLSelectElement);
 
 function showStatus(message: string, isError = false): void {
   statusText.textContent = message;
@@ -71,23 +79,31 @@ async function loadSettings(): Promise<void> {
   try {
     const settings = await invoke<Settings>("load_settings");
     debugCheckbox.checked = settings.debug;
+    controlsSelect.value = settings.controls;
     debugCheckbox.disabled = false;
+    controlsSelect.disabled = false;
   } catch (error) {
     showStatus(errorMessage(error), true);
   }
 }
 
 async function saveSettings(): Promise<void> {
-  const settings: Settings = { debug: debugCheckbox.checked };
+  const controls = controlsSelect.value;
+  if (!isControlsProfile(controls)) {
+    return;
+  }
+  const settings: Settings = { debug: debugCheckbox.checked, controls };
   try {
     await invoke("save_settings", { settings });
   } catch (error) {
-    debugCheckbox.checked = !settings.debug;
     showStatus(errorMessage(error), true);
+    // Show what is actually saved.
+    await loadSettings();
   }
 }
 
 launchButton.addEventListener("click", () => void launch());
 debugCheckbox.addEventListener("change", () => void saveSettings());
+controlsSelect.addEventListener("change", () => void saveSettings());
 void checkGame();
 void loadSettings();

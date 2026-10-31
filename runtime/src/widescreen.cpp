@@ -215,12 +215,46 @@ std::optional<int> flow_state() {
 // (6, 7), the attract-mode demo match (4) and transitions (0, 8, 9).
 bool is_menu_state(int state) { return state == 1 || state == 2 || state == 3 || state == 5; }
 
+// The mouse limits follow the 2D layer, so the cursor reaches the edges of the wider HUD (for
+// example the weapons drawer at the right edge). FUN_0049f620 sets them on flow state changes from
+// two constants (x +320 and -320) and stores them in the limit table (minimum x at 0x7311f4, maximum
+// x at 0x731200), which clamps the cursor. Both the constants and the table are set here, so the
+// limits are right whether the game sets them before or after the layout changes.
+struct MouseLimit {
+    const char* name;
+    std::uintptr_t constant_operand;
+    std::uintptr_t table_entry;
+    float original;
+    float current;
+};
+
+MouseLimit mouse_limits[] = {
+    {"right", 0x49f630, 0x731200, 320.0f, 320.0f},
+    {"left", 0x49f648, 0x7311f4, -320.0f, -320.0f},
+};
+
+void set_mouse_limits(float scale) {
+    for (MouseLimit& limit : mouse_limits) {
+        const float value = limit.original * scale;
+        if (!patch::replace_dword(limit.constant_operand, std::bit_cast<std::uint32_t>(limit.current),
+                                  std::bit_cast<std::uint32_t>(value))) {
+            log::write("ERROR: unexpected code at the mouse limit (" + std::string(limit.name) +
+                       "); it was not changed");
+            continue;
+        }
+        limit.current = value;
+        *reinterpret_cast<float*>(limit.table_entry) = value;
+        log::debug("Mouse limit " + std::string(limit.name) + ": " + std::to_string(value));
+    }
+}
+
 void apply_2d_layout(bool menus) {
     FrustumDescription description = two_d_frustum;
     if (!menus) {
         fit_to_display(description.frustum);
     }
     set_frustum(two_d_camera, description);
+    set_mouse_limits(menus ? 1.0f : static_cast<float>(std::max(1.0, display_aspect() / original_aspect)));
     log::debug(menus ? "2D layer: menu layout (4:3, stretched)" : "2D layer: match layout (widened)");
 }
 

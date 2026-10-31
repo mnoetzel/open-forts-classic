@@ -19,6 +19,10 @@ bool redirect_call(std::uintptr_t at, std::uintptr_t expected_target, const void
 // with NOPs.
 bool replace_with_call(std::uintptr_t at, std::span<const std::uint8_t> expected, const void* target);
 
+// Replaces instructions (`expected`, at least 5 bytes) with a relative jump to `target`, padded
+// with NOPs. Used to take over a function at its entry.
+bool replace_with_jump(std::uintptr_t at, std::span<const std::uint8_t> expected, const void* target);
+
 // Replaces a 32-bit value: a pointer in a table, or a constant or address inside an instruction.
 bool replace_dword(std::uintptr_t at, std::uint32_t expected, std::uint32_t value);
 
